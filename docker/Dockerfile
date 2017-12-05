@@ -9,8 +9,8 @@ RUN apk --no-cache add --virtual build-dependencies py2-pip \
     && pip install 'awscli == 1.14.3' \
     && apk del --purge -r build-dependencies
 
-# OpenSSH server
-RUN apk --no-cache add openssh-server tini \
+# OpenSSH server & client
+RUN apk --no-cache add openssh-server openssh tini \
     && sed -i s/#PasswordAuthentication.*/PasswordAuthentication\ yes/ /etc/ssh/sshd_config \
     && sed -i s/#PermitUserEnvironment.*/PermitUserEnvironment\ yes/ /etc/ssh/sshd_config
 
