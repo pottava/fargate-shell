@@ -11,15 +11,15 @@ RUN apk --no-cache add --virtual build-dependencies py2-pip \
 
 # OpenSSH server & client
 RUN apk --no-cache add openssh-server openssh tini \
-    && sed -i s/#PasswordAuthentication.*/PasswordAuthentication\ yes/ /etc/ssh/sshd_config \
+    && sed -i s/#PermitRootLogin.*/PermitRootLogin\ no/ /etc/ssh/sshd_config \
     && sed -i s/#PermitUserEnvironment.*/PermitUserEnvironment\ yes/ /etc/ssh/sshd_config
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-RUN addgroup cloud9 && adduser -s /bin/sh -D -G cloud9 cloud9
-ADD environment /home/cloud9/.ssh/environment
-WORKDIR /home/cloud9/
+RUN addgroup fargate && adduser -s /bin/sh -D -G fargate fargate
+ADD environment /home/fargate/.ssh/environment
+WORKDIR /home/fargate/
 
 EXPOSE 22
 
