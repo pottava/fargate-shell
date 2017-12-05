@@ -1,6 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: "Fargate for serverless bastion"
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: SSH Configuration
+        Parameters:
+          - Password
+
+Parameters:
+  Password:
+    Description: SSH password
+    Type: String
+
 Mappings:
   SubnetConfig:
     VPC:
@@ -190,6 +203,9 @@ Resources:
           PortMappings: 
             - ContainerPort: 22
               HostPort: 22
+          Environment:
+            - Name: SSH_PASSWORD
+              Value: !Ref Password
           LogConfiguration:
             LogDriver: awslogs
             Options:

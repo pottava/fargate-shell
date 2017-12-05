@@ -3,11 +3,18 @@ Serverless Bastion
 
 # How to use
 
-## Create base stack & retrieve outputs
+## Decide your SSH password
+
+```
+$ SSH_PASSWORD=
+```
+
+## Create a base stack & retrieve the outputs
 
 ```
 $ aws --region us-east-1 cloudformation create-stack \
     --stack-name bastion --template-body file://cfn.yaml \
+    --parameters ParameterKey=Password,ParameterValue="${SSH_PASSWORD}" \
     --capabilities CAPABILITY_IAM
 $ aws --region us-east-1 cloudformation wait stack-create-complete \
     --stack-name bastion
@@ -20,7 +27,7 @@ $ secgrp=$( echo ${outputs} | jq -r 'select(.OutputKey=="SecurityGroup").OutputV
 $ awsvpc='subnets=['${subnet1}','${subnet2}'],securityGroups=['${secgrp}']'
 ```
 
-## Run a fargate task & wait its running
+## Run a fargate task & wait for its running
 
 ```
 $ result=$( aws --region us-east-1 ecs run-task \
@@ -52,5 +59,5 @@ $ public_ip=$( aws ec2 --region us-east-1 describe-network-interfaces \
 ## SSH
 
 ```
-$ ssh cloud9@${public_ip}
+$ ssh fargate@${public_ip}
 ```
