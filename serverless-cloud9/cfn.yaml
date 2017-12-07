@@ -1,0 +1,234 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Fargate for serverless Cloud9"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: SSH Configuration
+        Parameters:
+          - AuthKeysS3Bucket
+          - AuthKeysS3Key
+
+Parameters:
+  AuthKeysS3Bucket:
+    Description: S3 bucket which stores .ssh/authorized_keys
+    Type: String
+
+  AuthKeysS3Key:
+    Description: S3 object key of .ssh/authorized_keys
+    Type: String
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: 10.0.0.0/16
+    Public1:
+      CIDR: 10.0.10.0/24
+    Public2:
+      CIDR: 10.0.20.0/24
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock:
+        Fn::FindInMap:
+          - SubnetConfig
+          - VPC
+          - CIDR
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VPC
+    Properties:
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    DependsOn: AttachGateway
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock:
+        Fn::FindInMap:
+          - SubnetConfig
+          - Public1
+          - CIDR
+      Tags:
+        - Key: Name
+          Value: "Public Subnet 1"
+        - Key: Application
+          Value: !Ref AWS::StackName
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    DependsOn: AttachGateway
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock:
+        Fn::FindInMap:
+          - SubnetConfig
+          - Public2
+          - CIDR
+      Tags:
+        - Key: Name
+          Value: "Public Subnet 2"
+        - Key: Application
+          Value: !Ref AWS::StackName
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - VPC
+      - AttachGateway
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public
+        - Key: Application
+          Value: !Ref AWS::StackName
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: AttachGateway
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: AttachGateway
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup for Cloud9 remote server
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: "0.0.0.0/0"
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+      Tags:
+        - Key: Name
+          Value: sg-for-cloud9
+
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+
+  Cloud9Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref AWS::StackName
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Path: /
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Path: /
+
+  Cloud9Task:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      Family: !Ref AWS::StackName
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !Ref TaskRole
+      ExecutionRoleArn: !Ref ExecutionRole
+      Cpu: 512
+      Memory: 1024
+      ContainerDefinitions:
+        - Name: cloud9
+          Image: pottava/fargate-cloud9:1.0
+          PortMappings: 
+            - ContainerPort: 22
+              HostPort: 22
+          Environment:
+            - Name: SSH_AUTHKEYS_S3_BUCKET
+              Value: !Ref AuthKeysS3Bucket
+            - Name: SSH_AUTHKEYS_S3_KEY
+              Value: !Ref AuthKeysS3Key
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: cloud9
+          Essential: true
+
+Outputs:
+  PublicSubnet1:
+    Value: !Ref PublicSubnet1
+
+  PublicSubnet2:
+    Value: !Ref PublicSubnet2
+
+  SecurityGroup:
+    Value: !Ref SecurityGroup
+
+  Cluster:
+    Value: !Ref Cloud9Cluster
