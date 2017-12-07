@@ -22,5 +22,12 @@ cat .ssh/authorized_keys
 # generate host keys if not present
 ssh-keygen -A
 
+if [ "x${USER_PASSWORD}" = "x" ] ; then
+  echo "fargate:${USER_PASSWORD}" | chpasswd
+  echo 'fargate ALL=(ALL) ALL' >> /etc/sudoers
+else
+  echo 'fargate ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+fi
+
 # do not detach (-D), log to stderr (-e), passthrough other arguments
 exec /usr/sbin/sshd -D -e "$@"

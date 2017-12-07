@@ -10,7 +10,8 @@ RUN yum install -y epel-release \
     && yum install -y --enablerepo=epel nodejs npm
 
 # for Cloud9
-RUN yum install -y glibc-static ncurses-devel
+RUN yum install -y glibc-static ncurses-devel which sudo docker \
+    && echo 'Defaults visiblepw' >> /etc/sudoers
 
 # tini
 RUN curl -o /tini.asc -sL https://github.com/krallin/tini/releases/download/v0.16.1/tini.asc \
@@ -32,8 +33,8 @@ ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ADD motd /etc/motd
 
-RUN groupadd -r fargate -g 1000 \
-    && useradd -u 1000 -r -g fargate -m -d /home/fargate -s /bin/bash fargate \
+RUN groupadd -g 1000 fargate \
+    && useradd -g fargate -u 1000 -m -d /home/fargate -s /bin/bash fargate \
     && chmod 755 /home/fargate
 ADD environment /home/fargate/.ssh/environment
 WORKDIR /home/fargate/
