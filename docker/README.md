@@ -16,5 +16,5 @@ $ docker run --rm -i -p 2222:22 -e SSH_PASSWORD=passw0rd \
 ### SSH
 
 ```
-$ ssh -p 2222 cloud9@localhost
+$ ssh -p 2222 fargate@localhost
 ```
