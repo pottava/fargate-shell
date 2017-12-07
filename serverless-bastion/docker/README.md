@@ -1,7 +1,7 @@
 Supported tags and respective `Dockerfile` links:
 
-・latest ([docker/Dockerfile](https://github.com/pottava/fargate-shell/blob/master/docker/Dockerfile))  
-・1.0 ([docker/Dockerfile](https://github.com/pottava/fargate-shell/blob/master/docker/Dockerfile))  
+・latest ([docker/Dockerfile](https://github.com/pottava/fargate-shell/blob/master/serverless-bastion/docker/Dockerfile))  
+・1.0 ([docker/Dockerfile](https://github.com/pottava/fargate-shell/blob/master/serverless-bastion/docker/Dockerfile))  
 
 ## Usage
 
