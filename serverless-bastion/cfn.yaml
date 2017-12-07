@@ -200,6 +200,8 @@ Resources:
       ContainerDefinitions:
         - Name: bastion
           Image: pottava/fargate-shell:1.0
+          Command:
+            - "-d"
           PortMappings: 
             - ContainerPort: 22
               HostPort: 22
