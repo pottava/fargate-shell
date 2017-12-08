@@ -9,8 +9,6 @@ Serverless Cloud9
 $ open https://console.aws.amazon.com/cloud9/home/create
 ```
 
-Configure Cloud9
-
 ```
 1. Click `Create environment` button
 2. Input the environment name
@@ -18,10 +16,12 @@ Configure Cloud9
 4. Select `Connect and run in remote server (SSH)` as your environment type
 5. Save `public SSH key` to your local disk as a `id_rsa.pub`
 
-* Do not click `Next step` button for now
+* Do not click the `Next step` button for now
 ```
 
 ## Upload the key to S3
+
+Set your S3 bucket name & key as environment variables
 
 ```
 $ S3_BUCKET=
@@ -82,3 +82,14 @@ $ public_ip=$( aws ec2 --region us-east-1 describe-network-interfaces \
 
 Set $public_ip as a Coud9 remote host.  
 Click the `Next step` button to complete the process!
+
+# Notice
+
+## You cannot install `c9.ide.lambda.docker` though..
+
+AWS Fargate is based on docker container itself.  
+It seems that we are not allowed to run `docker in docker` on AWS Fargate :(
+
+# Don't forget to stop the container!!!
+
+Not like a serverless-bastion container, servereless-cloud9 container has to be stopped manually.
