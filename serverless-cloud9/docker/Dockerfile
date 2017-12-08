@@ -10,7 +10,7 @@ RUN yum install -y epel-release \
     && yum install -y --enablerepo=epel nodejs npm
 
 # for Cloud9
-RUN yum install -y glibc-static ncurses-devel which sudo docker \
+RUN yum install -y glibc-static ncurses-devel which sudo \
     && echo 'Defaults visiblepw' >> /etc/sudoers
 
 # tini
@@ -34,7 +34,7 @@ RUN chmod +x /entrypoint.sh
 ADD motd /etc/motd
 
 RUN groupadd -g 1000 fargate \
-    && useradd -g fargate -u 1000 -m -d /home/fargate -s /bin/bash fargate \
+    && useradd -g fargate -G sudo -u 1000 -m -d /home/fargate -s /bin/bash fargate \
     && chmod 755 /home/fargate
 ADD environment /home/fargate/.ssh/environment
 WORKDIR /home/fargate/

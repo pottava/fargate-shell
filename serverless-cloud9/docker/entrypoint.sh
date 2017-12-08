@@ -22,7 +22,7 @@ cat .ssh/authorized_keys
 # generate host keys if not present
 ssh-keygen -A
 
-if [ "x${USER_PASSWORD}" = "x" ] ; then
+if [ "x${USER_PASSWORD}" != "x" ] ; then
   echo "fargate:${USER_PASSWORD}" | chpasswd
   echo 'fargate ALL=(ALL) ALL' >> /etc/sudoers
 else
