@@ -3,7 +3,7 @@ FROM pottava/fargate-cloud9:1.0
 ENV GOPATH=/home/fargate/go \
     PATH=/home/fargate/go/bin:/usr/local/go/bin:$PATH
 
-# Install go
+# Install go 1.8
 RUN yum install -y go wget \
     && mkdir -p $GOPATH \
     && chmod -R 777 $GOPATH \

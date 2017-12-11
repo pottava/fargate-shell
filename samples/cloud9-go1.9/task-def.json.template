@@ -1,0 +1,29 @@
+[
+  {
+    "name": "cloud9",
+    "image": "pottava/fargate-cloud9:with-go1.9",
+    "portMappings": [
+      {
+        "protocol": "tcp",
+        "containerPort": 22,
+        "hostPort": 22
+      },
+      {
+        "protocol": "tcp",
+        "containerPort": 80,
+        "hostPort": 80
+      }
+    ],
+    "environment": [
+      {
+        "name": "SSH_AUTHKEYS_S3_BUCKET",
+        "value": "@S3_BUCKET"
+      },
+      {
+        "name": "SSH_AUTHKEYS_S3_KEY",
+        "value": "@S3_KEY"
+      }
+    ],
+    "essential": true
+  }
+]
