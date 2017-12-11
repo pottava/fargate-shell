@@ -2,7 +2,7 @@ FROM amazonlinux:2017.09.0.20170930
 
 # AWS-CLI 1.14
 RUN yum install -y python27-pip groff \
-    && pip install 'awscli == 1.14.5' \
+    && pip install 'awscli == 1.14.7' \
     && yum remove -y python27-pip
 
 # Node 7.10

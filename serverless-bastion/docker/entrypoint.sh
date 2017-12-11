@@ -1,6 +1,6 @@
 #!/bin/sh
 
-env | grep AWS_ >> .ssh/environment
+env | grep AWS_ >> /home/fargate/.ssh/environment
 
 if [ "x${SSH_AUTHKEYS_S3_BUCKET}" != "x" ] ; then
   if [ "x${SSH_AUTHKEYS_S3_KEY}" = "x" ] ; then
@@ -9,11 +9,11 @@ if [ "x${SSH_AUTHKEYS_S3_BUCKET}" != "x" ] ; then
   fi
   aws sts get-caller-identity
   aws s3api get-object --bucket ${SSH_AUTHKEYS_S3_BUCKET} \
-      --key ${SSH_AUTHKEYS_S3_KEY} .ssh/authorized_keys \
+      --key ${SSH_AUTHKEYS_S3_KEY} /home/fargate/.ssh/authorized_keys \
       > /dev/null
-  chown fargate:fargate .ssh/authorized_keys
-  chmod 600 .ssh/authorized_keys
-  cat .ssh/authorized_keys
+  chown fargate:fargate /home/fargate/.ssh/authorized_keys
+  chmod 600 /home/fargate/.ssh/authorized_keys
+  cat /home/fargate/.ssh/authorized_keys
 
   passwd -u fargate
   sed -i s/#RSAAuthentication.*/RSAAuthentication\ yes/ /etc/ssh/sshd_config
