@@ -2,8 +2,8 @@ Cloud9 with go1.9.2
 ---
 
 ```
-$ SSH_AUTHKEYS_S3_BUCKET=
-$ SSH_AUTHKEYS_S3_KEY=
+$ S3_BUCKET=
+$ S3_KEY=
 $ ECS_CLUSTER=
 $ FAGATE_SUBNET=
 $ FAGATE_SECURITYGROUP=
@@ -11,11 +11,36 @@ $ FAGATE_EXEC_ROLEARN=
 $ FAGATE_TASK_ROLEARN=
 ```
 
+## Configure Cloud9
+
+```
+$ open https://console.aws.amazon.com/cloud9/home/create
+```
+
+```
+1. Click `Create environment` button
+2. Input the environment name
+3. Click `Next step` button
+4. Select `Connect and run in remote server (SSH)` as your environment type
+5. Save `public SSH key` to your local disk as a `id_rsa.pub`
+
+* Do not click the `Next step` button for now
+```
+
+## Upload the key to S3
+
+Set your S3 bucket name & key as environment variables
+
+```
+$ aws s3api put-object --bucket ${S3_BUCKET} --key ${S3_KEY} \
+    --body id_rsa.pub
+```
+
 ## Register a task definition with the FARGATE compatibility
 
 ```
-$ sed -e 's/@S3_BUCKET/'${SSH_AUTHKEYS_S3_BUCKET}'/' task-def.json.template > task-def.json
-$ sed -i -e 's/@S3_KEY/'${SSH_AUTHKEYS_S3_KEY}'/' task-def.json
+$ sed -e 's/@S3_BUCKET/'${S3_BUCKET}'/' task-def.json.template > task-def.json
+$ sed -i -e 's/@S3_KEY/'${S3_KEY}'/' task-def.json
 $ aws --region us-east-1 ecs register-task-definition \
     --family fagate-go19 \
     --requires-compatibilities FARGATE \
@@ -55,3 +80,8 @@ $ public_ip=$( aws ec2 --region us-east-1 describe-network-interfaces \
     | jq -r '.NetworkInterfaces[].Association.PublicIp' ) \
     && echo ${public_ip}
 ```
+
+## Configure Cloud9 again
+
+Set $public_ip as a Coud9 remote host.  
+Click the `Next step` button to complete the process!
