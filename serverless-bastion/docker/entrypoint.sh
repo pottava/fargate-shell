@@ -35,5 +35,10 @@ if [ "x${SSH_AUTHKEYS_S3_BUCKET}" = "x" ] ; then
   sed -i s/#PasswordAuthentication.*/PasswordAuthentication\ yes/ /etc/ssh/sshd_config
 fi
 
+if [ "${ENABLE_SUDO}" = "1" ] ; then
+  echo 'Defaults visiblepw' >> /etc/sudoers
+  echo 'fargate ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+fi
+
 # do not detach (-D), log to stderr (-e), passthrough other arguments
 exec /usr/sbin/sshd -D -e "$@"

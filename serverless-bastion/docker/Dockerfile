@@ -10,17 +10,20 @@ RUN apk --no-cache add --virtual build-deps py2-pip \
     && apk del --purge -r build-deps
 
 # OpenSSH server & client
-RUN apk --no-cache add openssh tini \
+RUN apk --no-cache add openssh \
     && sed -i s/#PermitRootLogin.*/PermitRootLogin\ no/ /etc/ssh/sshd_config \
     && sed -i s/#PermitUserEnvironment.*/PermitUserEnvironment\ yes/ /etc/ssh/sshd_config
+
+# for better experience
+RUN apk --no-cache add tini bash sudo
+
+RUN addgroup fargate && adduser -s /bin/bash -D -G fargate fargate
+ADD environment /home/fargate/.ssh/environment
+WORKDIR /home/fargate/
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ADD motd /etc/motd
-
-RUN addgroup fargate && adduser -s /bin/sh -D -G fargate fargate
-ADD environment /home/fargate/.ssh/environment
-WORKDIR /home/fargate/
 
 EXPOSE 22
 
