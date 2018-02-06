@@ -216,6 +216,22 @@ Resources:
               awslogs-stream-prefix: bastion
           Essential: true
 
+  BastionService:
+    Type: AWS::ECS::Service
+    Properties:
+      LaunchType: FARGATE
+      Cluster: !Ref BastionCluster
+      DesiredCount: 1
+      TaskDefinition: !Ref BastionTask
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref PublicSubnet1
+            - !Ref PublicSubnet2
+          SecurityGroups:
+            - !Ref SecurityGroup
+
 Outputs:
   PublicSubnet1:
     Value: !Ref PublicSubnet1
